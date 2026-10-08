@@ -1,4 +1,4 @@
-# Table of Contents — Template **[v2 — explicit anchors]**
+# Table of Contents — Template
 
 The exact format to use for Tables of Contents in generated guides. This replaces the v1 auto-slug anchor scheme (see "Why the change" below).
 

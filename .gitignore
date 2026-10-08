@@ -50,3 +50,10 @@ ehthumbs.db
 *.swp
 *.swo
 *~
+
+# ==============================================================================
+# Harness-managed sync output (regenerated automatically, not user content)
+# ==============================================================================
+synced/
+
+*.zip

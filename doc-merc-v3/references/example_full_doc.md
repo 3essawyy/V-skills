@@ -101,6 +101,14 @@ class TokenBucket:
 > [!IMPORTANT]
 > Always return a `Retry-After` header on `429` responses — it's the difference between a client backing off gracefully and a client retrying immediately into another rejection.
 
+For a token bucket with capacity $C$ and refill rate $r$ tokens per second, the tokens available after idle time $\Delta t$ are:
+
+```math
+T(\Delta t) = \min\left(C,\; T_0 + r\,\Delta t\right)
+```
+
+A request is allowed when $T \ge 1$, so the sustained rate is bounded by $r$ and the burst size by $C$.
+
 Rollout checklist for adding a limiter to an existing API:
 
 - [ ] Pick the algorithm based on burst tolerance needs (§2.1)

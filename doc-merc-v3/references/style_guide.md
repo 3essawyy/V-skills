@@ -1,6 +1,6 @@
 # Style Guide — Formatting Patterns Reference
 
-Exact formatting patterns the merC skill follows. v2 changes from the original are marked **[v2]**.
+Exact formatting patterns the merC skill follows. **v3 changelog:** added LaTeX/math support (§17); version tags normalized to one line, no per-section tags.
 
 ---
 
@@ -32,7 +32,7 @@ Exact formatting patterns the merC skill follows. v2 changes from the original a
 
 ---
 
-## 2. Table of Contents Pattern **[v2 — explicit anchors]**
+## 2. Table of Contents Pattern
 
 ```markdown
 ## Table of Contents
@@ -53,7 +53,7 @@ Each linked heading carries its own explicit anchor immediately above it:
 
 ---
 
-## 3. PART Heading Pattern **[v2 — H2, not H1]**
+## 3. PART Heading Pattern
 
 ```markdown
 <a id="part-1"></a>
@@ -119,7 +119,7 @@ Only the document title is H1. This keeps a single semantic outline root and pre
 
 ---
 
-## 6. Mermaid Diagram Patterns **[v2 — theme directive + role-based palette]**
+## 6. Mermaid Diagram Patterns
 
 Every diagram opens with a theme directive so custom fills render consistently instead of getting overridden by a viewer's default theme:
 
@@ -197,7 +197,7 @@ graph LR
 
 ---
 
-## 7. ASCII Art Patterns **[v2.3 — bordered containers retired]**
+## 7. ASCII Art Patterns
 
 > [!IMPORTANT]
 > The full bordered container (`┌─...─┐` wrapping any number of content rows, closed with `└─...─┘`) is **retired**. It has broken in real use twice — once with paragraph content, once with a plain list of short one-liners. The failure isn't about content length: this skill's rendering environment doesn't reliably preserve fixed-width monospace alignment for a right-hand border repeated across rows. No amount of "only for short content" scoping fixes that, so the pattern is gone, not narrowed further.
@@ -322,7 +322,7 @@ Default for the **first appearance of a genuinely new, non-trivial concept** —
 
 ---
 
-## 11. Collapsible Sections **[v2 — new; scope narrowed in v2.2]**
+## 11. Collapsible Sections
 
 For genuinely optional/supplementary content only: full config dumps, verbose logs, appendices, rarely-needed reference material.
 
@@ -344,7 +344,7 @@ For genuinely optional/supplementary content only: full config dumps, verbose lo
 
 ---
 
-## 12. Task Lists **[v2 — new]**
+## 12. Task Lists
 
 For setup steps, migration checklists, or anything the reader will work through and check off:
 
@@ -355,7 +355,7 @@ For setup steps, migration checklists, or anything the reader will work through 
 
 ---
 
-## 13. Footnotes **[v2 — new]**
+## 13. Footnotes
 
 For citations or asides that would clutter the inline flow of a sentence:
 
@@ -369,7 +369,7 @@ Use sparingly — most asides read better as a `[!NOTE]` callout than a footnote
 
 ---
 
-## 14. Footer Metadata **[v2 — new, Tier 3 docs]**
+## 14. Footer Metadata
 
 End of a deep-dive document:
 
@@ -382,7 +382,7 @@ Keep it to one line — it's a wayfinding note, not a changelog.
 
 ---
 
-## 15. Decision/Options Framework **[v2.1 — new]**
+## 15. Decision/Options Framework
 
 For "here are N alternatives, each with reasoning" content — proposal options, mitigation strategies, trade-off discussions. This is the pattern that replaces boxed ASCII art or a table when each item is prose-length rather than a short label, and the items are **mutually exclusive alternatives**, not a hierarchy (if they're a hierarchy, use §16 instead).
 
@@ -418,7 +418,7 @@ Enforce strict gatekeeping only on critical fields that cause Master crashes (e.
 
 ---
 
-## 16. Block Diagrams (`block-beta`) **[v2.1 — new; broadened in v2.3]**
+## 16. Block Diagrams (`block-beta`)
 
 Two distinct uses, both replacing the retired bordered-box container (§7):
 
@@ -465,3 +465,50 @@ Top-to-bottom color gradient (darkest at the foundation, lightest at the top) re
 
 > [!NOTE]
 > `block-beta` is a newer, beta-status Mermaid diagram type. It renders on GitHub and the Mermaid Live Editor, but support in VS Code's preview, Obsidian, and static-site generators can lag behind the core `graph`/`flowchart` syntax. Given the bordered-box ASCII pattern has now failed twice in real use, this is the recommended default regardless — if it turns out unsupported in your specific renderer, fall back to a plain Markdown list, not back to ASCII boxes.
+
+
+---
+
+## 17. LaTeX Math
+
+Use when a formula meets the trigger in SKILL.md §2.9 (fractions, sums/integrals, roots, sub/superscripts, Greek, matrices, derivations). Trivial expressions stay plain.
+
+**Inline:** `$\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i$`
+
+**Block (preferred, works everywhere including lists and callouts):**
+
+````markdown
+```math
+\hat{y} = \sigma(Wx + b) = \frac{1}{1 + e^{-(Wx + b)}}
+```
+````
+
+**Block (top level only):**
+
+```markdown
+$$
+\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}
+$$
+```
+
+**Multi-step derivation:** use `aligned` so the `=` signs line up.
+
+````markdown
+```math
+\begin{aligned}
+\text{Var}(X) &= E[(X-\mu)^2] \
+              &= E[X^2] - \mu^2
+\end{aligned}
+```
+````
+
+**Text inside math:** use `\text{...}`, not bare words, so spacing is correct (`$\text{rate} = \frac{k}{n}$`).
+
+**Placement rules:**
+- Callouts and lists: ```` ```math ```` fence only. Multi-line `$$` breaks inside `>` quotes and list items.
+- Tables: no bare `|`; use `\lvert x \rvert`, `\mid`, `\Vert`. Keep cells short; move long formulas out to a block under the table.
+- Mermaid labels: no LaTeX. Use Unicode (`α`, `Σ`, `x²`).
+- Currency: escape as `\$` (`costs \$5`); an unescaped pair of `$` becomes math.
+- Underscores and asterisks inside `$...$` are safe in GitHub, VS Code, and Obsidian; if a renderer mangles them, wrap the formula in a ```` ```math ```` fence instead.
+- Define symbols in a short sentence before or after a block formula ("where $n$ is the sample size").
+- Fallback if a viewer shows raw LaTeX: it stays readable, but do not rely on it for the only statement of a result; pair key results with a plain-text sentence.
