@@ -1,0 +1,52 @@
+# ==============================================================================
+# Enterprise & Proprietary Skills (Excluded from Public Git Tracking)
+# ==============================================================================
+audit-dashing-ui/
+convert-docx2md-v4/
+convert-md2docx-v2/
+convert-md2docx-v3/
+review-jenkins/
+review-restassured/
+review-test-automation/
+wf-ihi-feature-wrapping/
+wf-ihi-testing-guide/
+
+# ==============================================================================
+# Python Artifacts & Bytecode
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==============================================================================
+# Operating System & IDE Artifacts
+# ==============================================================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
