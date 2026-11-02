@@ -1,6 +1,6 @@
 # Style Guide — Formatting Patterns Reference
 
-Exact formatting patterns the merC skill follows. **v3 changelog:** added LaTeX/math support (§17); version tags normalized to one line, no per-section tags.
+Exact formatting patterns the merC skill follows. **v4 changelog:** added the Mermaid renderer-safe subset and `mmdc` validation (§6e); §6d example no longer uses the stadium shape. *(v3: added LaTeX/math support (§17); version tags normalized to one line.)*
 
 ---
 
@@ -190,10 +190,40 @@ To resolve this, **always wrap the entire label inside double quotes** within th
 ```mermaid
 %%{init: {'theme':'base'}}%%
 graph LR
-    Node1(["Data [Box]"]) --> Node2(["Result (Successful)"])
+    Node1["Data [Box]"] --> Node2("Result (Successful)")
     style Node1 fill:#1a1a2e,stroke:#e94560,color:#fff
     style Node2 fill:#2d3436,stroke:#00b894,color:#fff
 ```
+
+### 6e. Renderer-Safe Subset (v4)
+
+**Why:** `mmdc` and GitHub run the latest Mermaid, but preview extensions (VS Code's Markdown preview, Markdown Preview Enhanced, Obsidian) bundle their own versions and sanitize HTML differently. A diagram can compile cleanly and still show up as a raw code block in the reader's preview. In real use, a doc with 4 valid diagrams failed in VS Code; switching to this subset was the fix.
+
+| Feature | ✅ Use | ❌ Avoid |
+|---|---|---|
+| Edge label | `A -->\|Yes\| B` | `A -- Yes --> B` |
+| Node shapes | `["..."]` `("...")` `(("..."))` `((("...")))` `{"..."}` | stadium `([...])`, `@{ shape: ... }`, other newer shapes |
+| Comparison operators | `x >= 90`, `a != b` | `x ≥ 90`, `a ≠ b` |
+| Symbols in labels | words: "and", commas | `&`, `\|` inside a node label, emoji |
+| `<` / `>` next to HTML | `"x < 5<br/>next"` with a space after `<` | `"x<5<br/>next"` (reads as a tag) |
+| Styling | `classDef role fill:...` + `Node:::role` | `style` on a subgraph id |
+| Grouping | one flat `subgraph` level | nested subgraphs |
+
+**Shapes Mermaid can't draw.** Don't force them:
+- **Venn / overlap** (e.g. two overlapping circles): a table with one row per region, or a small ASCII sketch.
+- **Concentric rings** (core → middle → outer): a linear chain `Outer --> Middle --> Core`, with the ring name in each label.
+
+Before/after (from the failing doc):
+
+```text
+❌  S([Start]) --> M{...}            ✅  S(("Start")) --> M{...}
+❌  M -- Yes --> HY["Hybrid"]          ✅  M -->|Yes| HY["Hybrid"]
+❌  N7 -->|"x ≥ 90"| N8                ✅  N7 -->|"x >= 90"| N8
+❌  NT["👤 Testers"] -->|"build & run"|  ✅  NT["Testers"] -->|"build and run"|
+❌  subgraph T[...] subgraph A[...] end end + style A ...   ✅  O --> M --> I chain + classDef
+```
+
+**Validate:** `mmdc -i doc.md -o <temp-dir>/out.md` (add `-e png` to look at the renders). `mmdc` passing is necessary but not sufficient, which is why the subset rules apply even when validation passes.
 
 ---
 
@@ -507,7 +537,7 @@ $$
 **Placement rules:**
 - Callouts and lists: ```` ```math ```` fence only. Multi-line `$$` breaks inside `>` quotes and list items.
 - Tables: no bare `|`; use `\lvert x \rvert`, `\mid`, `\Vert`. Keep cells short; move long formulas out to a block under the table.
-- Mermaid labels: no LaTeX. Use Unicode (`α`, `Σ`, `x²`).
+- Mermaid labels: no LaTeX. Prefer ASCII (`>=`, `x^2`); Unicode letters (`α`, `Σ`) only when there's no readable ASCII form (§6e).
 - Currency: escape as `\$` (`costs \$5`); an unescaped pair of `$` becomes math.
 - Underscores and asterisks inside `$...$` are safe in GitHub, VS Code, and Obsidian; if a renderer mangles them, wrap the formula in a ```` ```math ```` fence instead.
 - Define symbols in a short sentence before or after a block formula ("where $n$ is the sample size").

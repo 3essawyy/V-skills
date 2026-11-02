@@ -8,7 +8,7 @@ A curated, production-tested suite of **Quality-of-Life (QoL)** skills for [Gemi
 
 | Skill | Category | Primary Focus & Capabilities | Trigger Phrases |
 | :--- | :--- | :--- | :--- |
-| **`doc-merc-v2`** | Documentation | Formats beautiful, executive-grade Markdown with styled callouts, themed Mermaid diagrams, and boxed ASCII banners. | *"format this"*, *"beautify"*, *"merc-style"*, *"make a pretty doc"* |
+| **`doc-merc-v4`** | Documentation | Formats beautiful, executive-grade Markdown with styled callouts, themed Mermaid diagrams, and boxed ASCII banners. | *"format this"*, *"beautify"*, *"merc-style"*, *"make a pretty doc"* |
 | **`doc-deep-dive`** | Documentation | Produces deeply structured, publication-quality technical guides and architectural specifications. | *"deep dive into"*, *"create a guide"*, *"document this topic"* |
 | **`doc-deep-dive-code`** | Documentation | Bridges reference documentation with actual codebases, producing step-by-step code walkthroughs. | *"code walkthrough"*, *"deep dive with code"*, *"explain this codebase"* |
 | **`doc-react-laravel-notes`** | Study & Learning | Generates indexed study notes (`00-index.md`, `01-topic.md`...) with Mermaid sequence flows and code examples. | *"notes on React"*, *"Laravel study guide"*, *"transcribe lecture notes"* |
@@ -50,7 +50,7 @@ If you already have a `~/.gemini/skills` directory, you can initialize this repo
 Skills are activated dynamically by Gemini CLI based on your conversational intent and matching triggers. You can also explicitly request an agent to invoke a specific skill by name:
 
 ```text
-> Activate doc-merc-v2 and format this API guide.
+> Activate doc-merc-v4 and format this API guide.
 > Use wf-pr-creator to prepare a Pull Request description for my active branch.
 > Grill me on this microservices migration plan.
 ```

@@ -1,5 +1,5 @@
 ---
-name: doc-merc-v3
+name: doc-merc-v4
 description: >
   Generates beautifully-formatted, visually stunning, and highly-structured Markdown documents —
   quick notes, guides, technical reports, cheat sheets, or full documentation — using color-themed
@@ -9,7 +9,7 @@ description: >
   output to look polished rather than plain. Always prefer this over unstyled Markdown output.
 ---
 
-# merc-v3 — Elegant Markdown Aesthetics & Documentation
+# merc-v4 — Elegant Markdown Aesthetics & Documentation
 
 You are an expert technical writer and document designer. When this skill activates, you produce **exceptionally polished, visually engaging, and well-structured Markdown documents** using a modern, consistent design language.
 
@@ -92,6 +92,13 @@ Use for any process, architecture, sequence, or hierarchy that's genuinely spati
 
 - Use `<br/>` for multiline labels; keep node labels descriptive, not just IDs.
 - **Brackets & Special Characters Protection:** Never place raw square brackets `[]` or nested parentheses `()` directly inside unquoted node labels (e.g., `Node([Data [Box]])`). Doing so breaks the Mermaid compiler and triggers parsing errors. Always wrap the entire label inside double quotes within the parenthesized shapes (e.g., `Node(["Data [Box]"])`).
+- **Renderer-safe subset (v4):** a diagram that compiles in `mmdc` can still fail in a preview extension (VS Code, Obsidian, MPE). Stay inside the subset that renders everywhere. Full rules + before/after: style_guide.md §6e.
+  - Edge labels: `A -->|label| B` only, never `A -- label --> B`.
+  - Shapes: `["..."]`, `("...")`, `(("..."))`, `((("...")))`, `{"..."}` only. No stadium `([...])`, no newer shape syntax.
+  - Labels: plain ASCII. No emoji; write `>=`, `<=`, `!=`, `->` instead of `≥ ≤ ≠ →`; spell `&` as "and"; no `|` inside a node label (use a comma); keep spaces around `<` / `>` so they can't look like an HTML tag next to `<br/>`.
+  - Styling: `classDef` + `:::class` on nodes. No nested subgraphs, and never `style` a subgraph id.
+  - Shapes Mermaid can't draw (Venn/overlap, concentric rings): use a table, a linear chain (outer → inner), or a small ASCII sketch (§2.4) instead of forcing it.
+- **Validate before delivering:** if `mmdc` (`@mermaid-js/mermaid-cli`) is on PATH, run `mmdc -i <file>.md -o <temp-dir>/out.md` and fix any block it rejects. Write the output to a temp dir, never next to the source file. If `mmdc` isn't installed, say the diagrams are unvalidated.
 
 ### 2.4 — ASCII Art (bordered containers retired)
 
@@ -137,7 +144,7 @@ Mechanical trigger: a formula gets LaTeX if it has fractions, sums/integrals, ro
 - Inline: `$E = mc^2$`. Blocks: a ```` ```math ```` fence (safe inside lists, callouts, and quotes), or `$$...$$` on its own lines at top level only.
 - **Literal dollar signs** must be escaped `\$` (`costs \$5 and \$10`), or they pair up as math.
 - **In tables:** never use a bare `|` in math (it splits the cell); write `\lvert x \rvert`, `\mid`, `\Vert`. Keep formulas short.
-- **In Mermaid labels:** no LaTeX (renderer support is inconsistent); use Unicode (`α`, `Σ`, `x²`).
+- **In Mermaid labels:** no LaTeX (renderer support is inconsistent). Prefer ASCII spellings (`>=`, `x^2`, `sum`); use a Unicode letter (`α`, `Σ`) only when there's no readable ASCII form (§2.3 renderer-safe subset).
 - Prefer a short line of prose before a block formula saying what the symbols mean. Full patterns: style_guide.md §17.
 
 ---
@@ -168,3 +175,4 @@ Mechanical trigger: a formula gets LaTeX if it has fractions, sums/integrals, ro
 6. **No placeholders:** no "TODO" or empty skeleton sections.
 7. **Code quality:** all code blocks syntax-highlighted and commented.
 8. **Math check:** formulas meeting the §2.9 trigger use LaTeX; literal `$` is escaped `\$`; no bare `|` in table math; no LaTeX inside Mermaid labels; block math inside callouts/lists uses ```` ```math ````.
+9. **Mermaid check:** every diagram stays in the §2.3 renderer-safe subset (`-->|label|` edges, core shapes, ASCII labels, no emoji, `classDef` styling, no nested subgraphs), and passed `mmdc` if it's available.
