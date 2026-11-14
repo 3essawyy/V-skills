@@ -1,10 +1,16 @@
 """validate_style.py <raw.md> <styled.md> <n_slides>
-Checks a merc-styled lecture md against the raw conversion. Problems are prefixed
-[part-N] (or [doc]) so failing PARTs can be re-styled individually.
-Checks: slide heading count, one H1, ToC links, per-slide word coverage (<0.9),
-AI Key Idea callouts, figure blocks (format + count vs raw), no <details>,
-balanced <table>, math ($ balance, $$ placement, | in table math), pipe-table
-cell counts + trailing footnote rows, mermaid safe subset + mmdc compile.
+Checks a merc-styled lecture md (v4.1: PARTs + topic subsections) against the raw
+conversion. Problems are prefixed [part-N] (or [doc]) so failing PARTs can be
+re-styled individually.
+Checks: one H1 + H3 subtitle + Source/Scope lines, ToC links, kept/dropped slide
+accounting (hidden <a id="sNN"> anchors + `*Dropped slides:*` footer, must cover
+1..N), dropped-slide content guard (>40 words), subsection headings/anchors/ranges,
+per-subsection word coverage (<0.9, set-presence), figure links (<id>.png) + figure
+block format, no `Slide use:` filler, Key Idea placement/form (<=60 words, <=1 per
+PART), Roadmap (<=1, exact heading, placement), no <details>, balanced <table>,
+math ($ balance, $$ placement, | in table math), pipe-table cell counts + trailing
+footnote rows, mermaid safe subset + mmdc compile.
+INJECT blocks with content `skip`, empty, or starting `drop:` need no image link.
 Prints a summary line, problems, then `FAILING_PARTS: part-2,part-5` (or none).
 Exit code 1 if any problem, else 0.
 """
@@ -22,13 +28,43 @@ def flag(part, msg):
     problems.append((part, msg))
 
 
+INJ = re.compile(r"<!-- INJECT_START: ([^ ]+) -->(.*?)<!-- INJECT_END: \1 -->", re.S)
+
+
+def is_dead(body):
+    b = body.strip().lower()
+    return (not b) or b == "skip" or b.startswith("drop:")
+
+
+def strip_skip(t):
+    """Drop INJECT blocks whose content is skip/empty/drop: (not figures to link)."""
+    return INJ.sub(lambda m: " " if is_dead(m.group(2)) else m.group(0), t)
+
+
+def drop_text(t):
+    """Replace `drop: <label> — <names>` blocks by the names only (for the dropped-slide guard)."""
+    def rep(m):
+        b = m.group(2).strip()
+        if b.lower().startswith("drop:"):
+            b = b[5:].strip()
+            b = re.split(r"\s+[—–-]\s+|—", b, maxsplit=1)[-1]
+            return " " + b + " "
+        return m.group(0)
+    return INJ.sub(rep, t)
+
+
 def words(t):
+    t = strip_skip(t)
+    t = re.sub(r"(?mi)^\s*(slide use|use|purpose):.*$", " ", t)   # AI filler lines the style step deletes on purpose
     t = re.sub(r"<!--.*?-->", " ", t, flags=re.S)
     t = re.sub(r"!\[[^\]]*\]\([^)]*\)", " ", t)          # image links
+    t = re.sub(r"\\(begin|end)\{[^}]*\}", " ", t)        # LaTeX environments
+    t = re.sub(r"\\[A-Za-z]+", " ", t)                   # LaTeX macros (\rightarrow): lost legitimately when grammar moves from LaTeX to code
+    t = re.sub(r"slide_\d+_fig_\d+|\bfig\b", " ", t)     # "fig" from figure ids / marker lines
     return re.findall(r"[a-z0-9]{3,}", t.lower())
 
 
-# ---------- line scan: fences, part/slide anchors ----------
+# ---------- line scan: fences ----------
 in_fence = [False] * len(lines)   # True for fence lines and their content
 fence_lang = {}                   # start line idx -> (lang, end idx)
 fence = None                      # (marker, start idx, lang)
@@ -47,21 +83,36 @@ if fence is not None:
     fence_lang[fence[1]] = (fence[2], len(lines))
     flag(None, "unclosed code fence")
 
+# ---------- structure scan: parts, subsections, slide anchors ----------
 part_of_line = [None] * len(lines)
-slide_part = {}
-part_anchor_line = {}
-part_first_slide_line = {}
+part_anchor_line = {}            # part -> line of <a id="part-N">
+part_first_sub_line = {}         # part -> first <a id="part-N-M"> line
+sub_anchor_line = {}             # (N, M) -> line
+sub_heads = []                   # (line, N, M, a, b, title)
+slide_anchor = []                # (slide number, line)
+footer_line = len(lines)
 cur = None
+SUB_RE = re.compile(r"^### (\d+)\.(\d+)\s+(.*?)\s*\(slides?\s+(\d+)(?:\s*[–-]\s*(\d+))?\)\s*$")
 for i, l in enumerate(lines):
     if not in_fence[i]:
         m = re.match(r'^\s*<a id="part-(\d+)"></a>', l)
         if m:
             cur = int(m.group(1))
             part_anchor_line[cur] = i
-        m = re.match(r'^\s*<a id="s(\d+)"></a>', l)
-        if m and cur is not None:
-            slide_part[int(m.group(1))] = cur
-            part_first_slide_line.setdefault(cur, i)
+        m = re.match(r'^\s*<a id="part-(\d+)-(\d+)"></a>', l)
+        if m:
+            sub_anchor_line[(int(m.group(1)), int(m.group(2)))] = i
+            part_first_sub_line.setdefault(int(m.group(1)), i)
+        m = re.match(r'^\s*<a id="s(\d+)"></a>\s*$', l)
+        if m:
+            slide_anchor.append((int(m.group(1)), i))
+        m = SUB_RE.match(l)
+        if m:
+            a = int(m.group(4))
+            b = int(m.group(5)) if m.group(5) else a
+            sub_heads.append((i, int(m.group(1)), int(m.group(2)), a, b, m.group(3)))
+        if re.match(r"^\*Scope:", l) and footer_line == len(lines):
+            footer_line = i
     part_of_line[i] = cur
 
 
@@ -69,19 +120,43 @@ def P(i):
     return part_of_line[i] if i is not None and i < len(part_of_line) else None
 
 
-# ---------- slide split (raw vs styled) ----------
+# sub text spans: heading line -> next sub heading / part anchor / footer
+bounds = sorted(set([h[0] for h in sub_heads] + list(part_anchor_line.values()) + [footer_line]))
+sub_span = {}
+for h in sub_heads:
+    nxt = min([b for b in bounds if b > h[0]] or [len(lines)])
+    sub_span[h[0]] = (h[0], nxt)
+
+
+def sub_of_line(i):
+    """Subsection head containing line i (no PART boundary between), else None."""
+    best = None
+    for h in sub_heads:
+        if h[0] < i:
+            best = h
+    if best is None:
+        return None
+    pa = [v for v in part_anchor_line.values() if best[0] < v < i]
+    return None if pa or i >= footer_line else best
+
+
+# ---------- raw sections ----------
 raw_sl = {int(m.group(1)): m.group(2) for m in
           re.finditer(r"^## Slide (\d+):(.*?)(?=^## Slide \d+:|\Z)", raw, flags=re.M | re.S)}
-sty_sl = {int(m.group(1)): m.group(2) for m in
-          re.finditer(r'<a id="s(\d+)"></a>(.*?)(?=<a id="s\d+"></a>|<a id="part-\d+"></a>|\Z)', sty, flags=re.S)}
 
-# ---------- doc-level ----------
-heads = len(re.findall(r"^### \d+ · ", sty, flags=re.M))
-if heads != n:
-    flag(None, f"slide headings {heads} != {n}")
+# ---------- header / footer ----------
 h1 = [i for i, l in enumerate(lines) if not in_fence[i] and re.match(r"^# ", l)]
 if len(h1) != 1:
     flag(None, f"H1 count {len(h1)} != 1")
+if h1:
+    nxt = next((l for l in lines[h1[0] + 1:] if l.strip()), "")
+    if not re.match(r"^### \S", nxt):
+        flag(None, "line after H1 must be an H3 subtitle ('### ...')")
+if not re.search(r"^> \*\*Source:\*\*", sty, flags=re.M):
+    flag(None, "missing '> **Source:**' line")
+if not re.search(r"^\*Scope:", sty, flags=re.M):
+    flag(None, "missing '*Scope: ...*' footer line")
+
 anchors = set(re.findall(r'<a id="([^"]+)"></a>', sty))
 bad = [l for l in re.findall(r"\]\(#([^)]+)\)", sty) if l not in anchors]
 if bad:
@@ -89,46 +164,114 @@ if bad:
 if len(re.findall(r"<table\b", sty)) != len(re.findall(r"</table>", sty)):
     flag(None, "unbalanced <table>/</table>")
 
+# ---------- kept / dropped accounting ----------
+kept = [s for s, _ in slide_anchor]
+kept_set = set(kept)
+if len(kept) != len(kept_set):
+    flag(None, f"duplicate slide anchors: {sorted(s for s, c in collections.Counter(kept).items() if c > 1)}")
+if kept != sorted(kept):
+    flag(None, "slide anchors not in ascending order")
 
-# ---------- coverage + figure counts per slide ----------
-def fig_expected(txt):
-    c = 0
-    for m in re.finditer(r"<!-- INJECT_START: ([^ ]+) -->(.*?)<!-- INJECT_END: \1 -->", txt, flags=re.S):
-        body = m.group(2).strip()
-        if body and body.lower() != "skip":
-            c += 1
-    return c
+dropped = set()
+dm = re.search(r"^\*Dropped slides:\s*(.*?)\*?\s*$", sty, flags=re.M)
+if not dm:
+    flag(None, "missing '*Dropped slides: ...*' footer line")
+else:
+    body = dm.group(1).strip().rstrip("*").strip()
+    if body.lower() != "none":
+        body = re.sub(r"\([^)]*\)", "", body)
+        for part in body.split(","):
+            r = re.match(r"\s*(\d+)(?:\s*[–-]\s*(\d+))?", part)
+            if r:
+                a = int(r.group(1))
+                b = int(r.group(2)) if r.group(2) else a
+                dropped.update(range(a, b + 1))
+        if not dropped:
+            flag(None, "Dropped slides line has no slide numbers (use 'none')")
+allset = set(range(1, n + 1))
+if dropped & kept_set:
+    flag(None, f"slides both kept and dropped: {sorted(dropped & kept_set)}")
+miss = sorted(allset - kept_set - dropped)
+extra = sorted((kept_set | dropped) - allset)
+if miss:
+    flag(None, f"slides neither kept nor dropped: {miss}")
+if extra:
+    flag(None, f"slide numbers outside 1..{n}: {extra}")
 
+for k in sorted(dropped & set(raw_sl)):
+    txt = re.sub(r"<!--.*?-->", " ", strip_skip(drop_text(raw_sl[k])), flags=re.S)
+    wc = len(txt.split())
+    if wc > 40:
+        flag(None, f"dropped slide {k:02d} has {wc} words of content")
 
-for k in sorted(raw_sl):
-    pk = slide_part.get(k)
-    rw = collections.Counter(words(raw_sl[k]))
-    sw = collections.Counter(words(sty_sl.get(k, "")))
-    tot = sum(rw.values())
-    if tot:
-        cov = sum(min(c, sw[w]) for w, c in rw.items()) / tot
-        if cov < 0.9:
-            miss = [w for w in rw if sw[w] < rw[w]][:12]
-            flag(pk, f"slide {k}: coverage {cov:.2f} missing {miss}")
-    exp = fig_expected(raw_sl[k])
-    got = len(re.findall(r"\*\*Figure — AI transcription\*\*", sty_sl.get(k, "")))
-    if got < exp:
-        flag(pk, f"slide {k}: figure blocks {got} < expected {exp}")
+# ---------- subsections ----------
+for (i, N, M, a, b, title) in sub_heads:
+    pk = N
+    if b < a:
+        flag(pk, f"line {i+1}: subsection {N}.{M} has reversed range {a}-{b}")
+    if P(i) != N:
+        flag(pk, f"line {i+1}: subsection {N}.{M} sits under PART {P(i)}")
+    prev = next((lines[j] for j in range(i - 1, -1, -1) if lines[j].strip()), "")
+    if prev.strip() != f'<a id="part-{N}-{M}"></a>':
+        flag(pk, f"line {i+1}: subsection {N}.{M} needs '<a id=\"part-{N}-{M}\"></a>' right before its heading")
+for (N, M), li in sub_anchor_line.items():
+    nxt = next((lines[j] for j in range(li + 1, len(lines)) if lines[j].strip()), "")
+    if not SUB_RE.match(nxt):
+        flag(N, f"line {li+1}: anchor part-{N}-{M} not followed by a '### {N}.{M} ... (slides a-b)' heading")
 
-raw_markers = len(re.findall(r"<!-- INJECT_START", raw))
-exp_total = fig_expected(raw)
-fig_styled = len(re.findall(r"^> \*\*Figure — AI transcription\*\* \(slide \d{2}\)$", sty, flags=re.M))
-if fig_styled < exp_total and not any("figure blocks" in m for _, m in problems):
-    flag(None, f"figure blocks {fig_styled} < expected {exp_total}")
+sub_of_slide = {}
+for s, li in slide_anchor:
+    h = sub_of_line(li)
+    if h is None:
+        flag(P(li), f"slide {s:02d}: not inside any subsection")
+        continue
+    sub_of_slide[s] = h
+    if not (h[3] <= s <= h[4]):
+        flag(h[1], f"slide {s:02d} anchor outside range ({h[3]}-{h[4]}) of subsection {h[1]}.{h[2]}")
 
-# ---------- AI callouts + figure block format ----------
+# ---------- coverage (set-presence per subsection) ----------
+sub_words = {}
+for h in sub_heads:
+    a, b = sub_span[h[0]]
+    sub_words[h[0]] = set(words("\n".join(lines[a:b])))
+all_words = set(words(sty))
+for s in sorted(kept_set):
+    if s not in raw_sl:
+        flag(None, f"slide {s:02d}: not found in raw")
+        continue
+    rw = words(raw_sl[s].split("\n", 1)[1] if "\n" in raw_sl[s] else "")   # skip the "## Slide N: title" line: titles become subsection headings, reworded
+    if not rw:
+        continue
+    h = sub_of_slide.get(s)
+    sw = sub_words[h[0]] if h else all_words
+    pk = h[1] if h else None
+    cov = sum(1 for w in rw if w in sw) / len(rw)
+    if cov < 0.9:
+        missing = list(dict.fromkeys(w for w in rw if w not in sw))[:12]
+        flag(pk, f"slide {s:02d}: coverage {cov:.2f} missing {missing}")
+
+# ---------- figures ----------
+exp_ids = [m.group(1) for m in INJ.finditer(raw) if not is_dead(m.group(2))
+           and not (re.match(r"slide_(\d+)_", m.group(1)) and int(re.match(r"slide_(\d+)_", m.group(1)).group(1)) in dropped)]  # dropped slides need no image (content guard covers them)
+linked = 0
+for fid in exp_ids:
+    if re.search(re.escape(fid) + r"\.png", sty):
+        linked += 1
+    else:
+        sm = re.match(r"slide_(\d+)_", fid)
+        pk = sub_of_slide[int(sm.group(1))][1] if sm and int(sm.group(1)) in sub_of_slide else None
+        flag(pk, f"figure {fid}: no link to {fid}.png in styled md")
+
+# ---------- AI callouts, figure block format, filler ----------
 tip_per_part = collections.Counter()
 KI = "> **Key Idea (AI-added):**"
 for i, l in enumerate(lines):
-    if in_fence[i]:
-        continue
     s = l.rstrip()
     pi = P(i)
+    if re.match(r"^[>\s]*Slide use:", s):
+        flag(pi, f"line {i+1}: filler line 'Slide use:'")
+    if in_fence[i]:
+        continue
     if s.strip() == "> [!TIP]":
         nxt = lines[i + 1].rstrip() if i + 1 < len(lines) else ""
         if not nxt.startswith(KI):
@@ -138,9 +281,9 @@ for i, l in enumerate(lines):
         if pi is None:
             flag(None, f"line {i+1}: Key Idea callout outside any PART")
         else:
-            a, f1 = part_anchor_line.get(pi), part_first_slide_line.get(pi)
+            a, f1 = part_anchor_line.get(pi), part_first_sub_line.get(pi)
             if not (i > a and (f1 is None or i < f1)):
-                flag(pi, f"line {i+1}: Key Idea must sit between PART heading and its first slide anchor")
+                flag(pi, f"line {i+1}: Key Idea must sit between PART heading and its first subsection anchor")
         txt = [nxt[len(KI):]]
         j = i + 2
         while j < len(lines) and lines[j].startswith(">"):
@@ -161,6 +304,21 @@ for i, l in enumerate(lines):
 for p, c in tip_per_part.items():
     if c > 1:
         flag(p, f"{c} Key Idea callouts (max 1 per PART)")
+
+# ---------- roadmap ----------
+road = [i for i, l in enumerate(lines) if not in_fence[i] and re.match(r"^#+\s.*Roadmap", l)]
+if len(road) > 1:
+    flag(None, f"{len(road)} Roadmap headings (max 1)")
+for i in road:
+    if lines[i].rstrip() != "### Roadmap (AI-added)":
+        flag(None, f"line {i+1}: Roadmap heading must be exactly '### Roadmap (AI-added)'")
+    toc = next((j for j, l in enumerate(lines) if re.match(r"^## Table of Contents", l)), None)
+    p1 = part_anchor_line.get(1)
+    if toc is None or i < toc or (p1 is not None and i > p1):
+        flag(None, f"line {i+1}: Roadmap must sit after the ToC and before <a id=\"part-1\">")
+    nxt = next((lines[j] for j in range(i + 1, len(lines)) if lines[j].strip()), "")
+    if not re.match(r"^\s*(`{3,}|~{3,})\s*mermaid\b", nxt):
+        flag(None, f"line {i+1}: Roadmap must be followed by a mermaid block")
 
 # ---------- <details> ----------
 for i, l in enumerate(lines):
@@ -278,8 +436,9 @@ for bi, (start, b) in enumerate(blocks):
         except Exception as e:
             flag(pk, f"{tag}: mmdc failed to run: {e}")
 
-print(f"slides={heads}/{n} anchors={len(anchors)} mermaid={len(blocks)} invalid={mm_bad} "
-      f"figures={fig_styled}/{exp_total} (raw markers {raw_markers}) "
+print(f"kept={len(kept_set)} dropped={len(dropped)}/{n} subsections={len(sub_heads)} "
+      f"parts={len(part_anchor_line)} mermaid={len(blocks)} invalid={mm_bad} "
+      f"figures_linked={linked}/{len(exp_ids)} "
       f"size={len(sty)} chars (~{len(sty)//4} tok) vs raw {len(raw)}")
 if blocks and not mm_bin:
     print("WARNING: mermaid unvalidated (mmdc missing)")

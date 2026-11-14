@@ -402,6 +402,9 @@ def inject(md_path: str, media_dir: str, rel_media: str) -> None:
         if text.lower() == "skip":
             stats["skipped_decorative"] += 1
             return f"<!-- skipped decorative: {aid} -->"
+        if text.lower().startswith("drop:"):           # title/divider/end slide: keep its text for the styler, no image
+            stats["drop"] += 1
+            return f"<!-- INJECT_START: {aid} -->\n{text}\n<!-- INJECT_END: {aid} -->"
         ok, why = validate(text)
         if not ok:
             problems.append(f"{aid}: {why}")
@@ -424,7 +427,7 @@ def report(pdf: str, md_path: str) -> None:
         content = fh.read()
     n_pages = len(pymupdf.open(pdf))
     n_sections = len(re.findall(r"^## Slide \d+:", content, re.M))
-    pending = [m.group(1) for m in PATTERN.finditer(content) if "AI transcription" not in m.group(2)]
+    pending = [m.group(1) for m in PATTERN.finditer(content) if "AI transcription" not in m.group(2) and not m.group(2).lower().startswith("drop:")]
     empty = [m.group(1) for m in re.finditer(r"^## Slide (\d+):[^\n]*\n(?=(?:\s*\n)*(?:## Slide|\Z))", content, re.M)]
     print("--- fidelity report ---")
     print(f"slides in PDF: {n_pages} | sections in md: {n_sections} -> {'OK' if n_pages == n_sections else 'MISMATCH'}")
