@@ -57,3 +57,6 @@ ehthumbs.db
 synced/
 
 *.zip
+
+# Keep archived skills tracked
+!archive/*.zip
