@@ -1,6 +1,6 @@
 # Style Guide — Formatting Patterns Reference
 
-Exact formatting patterns the merC skill follows. **v4 changelog:** added the Mermaid renderer-safe subset and `mmdc` validation (§6e); §6d example no longer uses the stadium shape. *(v3: added LaTeX/math support (§17); version tags normalized to one line.)*
+Exact formatting patterns the merC skill follows. **v5 changelog:** Mermaid labels that start like Markdown (`-`, `+`, `*`, `1.`, `#`) are quoted or spelled out; per-diagram node-id prefixes; render check, not parse-only (§6e). **v4 changelog:** added the Mermaid renderer-safe subset and `mmdc` validation (§6e); §6d example no longer uses the stadium shape. *(v3: added LaTeX/math support (§17); version tags normalized to one line.)*
 
 ---
 
@@ -195,7 +195,7 @@ graph LR
     style Node2 fill:#2d3436,stroke:#00b894,color:#fff
 ```
 
-### 6e. Renderer-Safe Subset (v4)
+### 6e. Renderer-Safe Subset (v4, extended in v5)
 
 **Why:** `mmdc` and GitHub run the latest Mermaid, but preview extensions (VS Code's Markdown preview, Markdown Preview Enhanced, Obsidian) bundle their own versions and sanitize HTML differently. A diagram can compile cleanly and still show up as a raw code block in the reader's preview. In real use, a doc with 4 valid diagrams failed in VS Code; switching to this subset was the fix.
 
@@ -208,6 +208,8 @@ graph LR
 | `<` / `>` next to HTML | `"x < 5<br/>next"` with a space after `<` | `"x<5<br/>next"` (reads as a tag) |
 | Styling | `classDef role fill:...` + `Node:::role` | `style` on a subgraph id |
 | Grouping | one flat `subgraph` level | nested subgraphs |
+| Label starting with `-` `+` `*` `1.` `#` | `A -->\|"'-'"\| B` or `\|"minus"\|` | `A -->\|"-"\| B` (Mermaid 11 reads it as a Markdown list: "Unsupported markdown: list", blank box in VS Code) |
+| Node ids across diagrams | prefix per diagram: `a_n1`, `b_n1` | the same `n1`, `A`, `B` in every diagram of one doc |
 
 **Shapes Mermaid can't draw.** Don't force them:
 - **Venn / overlap** (e.g. two overlapping circles): a table with one row per region, or a small ASCII sketch.
@@ -222,6 +224,8 @@ Before/after (from the failing doc):
 ❌  NT["👤 Testers"] -->|"build & run"|  ✅  NT["Testers"] -->|"build and run"|
 ❌  subgraph T[...] subgraph A[...] end end + style A ...   ✅  O --> M --> I chain + classDef
 ```
+
+**Real failure (v5):** a regex-to-NFA doc had an edge for the literal character `-`. Syntax was valid and `mermaid.parse` passed, but Mermaid 11 drew "Unsupported markdown: list" and the VS Code extension (Markdown Preview Mermaid Support) showed an empty box. Quoting the label as `'-'` fixed it.
 
 **Validate:** `mmdc -i doc.md -o <temp-dir>/out.md` (add `-e png` to look at the renders). `mmdc` passing is necessary but not sufficient, which is why the subset rules apply even when validation passes.
 
