@@ -1,6 +1,6 @@
 # Style Guide — Formatting Patterns Reference
 
-Exact formatting patterns the merC skill follows. **v6 changelog:** title block is H1 only (§1); headings are reader questions (§3); concept-intro replaced by slot templates (§10); footer retired (§14); Key Idea restricted (§9). Content rules (questions, caps, slots) live in SKILL.md Step 1–2. **v5 changelog:** Mermaid labels that start like Markdown (`-`, `+`, `*`, `1.`, `#`) are quoted or spelled out; per-diagram node-id prefixes; render check, not parse-only (§6e). **v4 changelog:** added the Mermaid renderer-safe subset and `mmdc` validation (§6e); §6d example no longer uses the stadium shape. *(v3: added LaTeX/math support (§17); version tags normalized to one line.)*
+Exact formatting patterns the merC skill follows. **v6 changelog:** title block is H1 only (section 1); headings are reader questions (section 3); concept-intro replaced by slot templates (section 10); footer retired (section 14); Key Idea restricted (section 9). Content rules (questions, caps, slots) live in SKILL.md Step 1–2. **v5 changelog:** Mermaid labels that start like Markdown (`-`, `+`, `*`, `1.`, `#`) are quoted or spelled out; per-diagram node-id prefixes; render check, not parse-only (section 6e). **v4 changelog:** added the Mermaid renderer-safe subset and `mmdc` validation (section 6e); section 6d example no longer uses the stadium shape. *(v3: added LaTeX/math support (section 17); version tags normalized to one line.)*
 
 ---
 
@@ -63,7 +63,7 @@ Each linked heading carries its own explicit anchor immediately above it:
 
 ### 1.1 [Question, ≤10 words?]
 
-[One slot template — SKILL.md §2.4]
+[One slot template — SKILL.md section 2.4]
 
 ### 1.2 [Question?]
 
@@ -93,7 +93,7 @@ Each linked heading carries its own explicit anchor immediately above it:
 **Rules:**
 - First column is the comparison dimension (bold).
 - Left-align all text.
-- Keep cells concise (max 15 words per cell). If a cell's reasoning genuinely needs more room, that content belongs in the Decision/Options pattern (§15) instead — don't cram it in or drop the table for the rest of the data.
+- Keep cells concise (max 15 words per cell). If a cell's reasoning genuinely needs more room, that content belongs in the Decision/Options pattern (section 15) instead — don't cram it in or drop the table for the rest of the data.
 
 ---
 
@@ -263,10 +263,10 @@ graph LR
 | Content shape | Use |
 |----------------|-----|
 | Flat, equal-weight short items, no visual containment needed | Plain Markdown list — no box at all |
-| Same, but you want a visually distinct "card" look (recap, key takeaways, session summary) | `block-beta`, single solid fill, `columns 1` (§16) |
-| Genuine hierarchy or layered stack | `block-beta` with gradient fill (§16) |
+| Same, but you want a visually distinct "card" look (recap, key takeaways, session summary) | `block-beta`, single solid fill, `columns 1` (section 16) |
+| Genuine hierarchy or layered stack | `block-beta` with gradient fill (section 16) |
 | Directory structure | ASCII tree (7a) |
-| Any linear or branching flow | Mermaid `graph`/`flowchart` (§6), not ASCII boxes |
+| Any linear or branching flow | Mermaid `graph`/`flowchart` (section 6), not ASCII boxes |
 
 ---
 
@@ -326,7 +326,7 @@ Only for an insight no slot already states. If it repeats a What/Definition line
 
 The v5 pattern (quoted one-liner → problem it solves → what it does → analogy → Key Idea) stated one idea four times. **Retired.**
 
-Each question section now uses exactly one slot template — Component, Process, Concept, or Decision — defined in SKILL.md §2.4. Slots in order, empty slots omitted, none added.
+Each question section now uses exactly one slot template — Component, Process, Concept, or Decision — defined in SKILL.md section 2.4. Slots in order, empty slots omitted, none added.
 
 **Before (v5):**
 ```markdown
@@ -415,7 +415,7 @@ The `*Scope: ...*` footer restated the title. Don't write it.
 
 ## 15. Decision/Options Framework
 
-For "here are N alternatives, each with reasoning" content — proposal options, mitigation strategies, trade-off discussions. This is the pattern that replaces boxed ASCII art or a table when each item is prose-length rather than a short label, and the items are **mutually exclusive alternatives**, not a hierarchy (if they're a hierarchy, use §16 instead).
+For "here are N alternatives, each with reasoning" content — proposal options, mitigation strategies, trade-off discussions. This is the pattern that replaces boxed ASCII art or a table when each item is prose-length rather than a short label, and the items are **mutually exclusive alternatives**, not a hierarchy (if they're a hierarchy, use section 16 instead).
 
 ```markdown
 #### Option A — [Short Label]
@@ -432,8 +432,8 @@ For "here are N alternatives, each with reasoning" content — proposal options,
 - H4 for each option header — sits clearly under a PART/subsection (H2/H3) without competing with them.
 - Bold isn't necessary on the header line; the H4 already carries the visual weight.
 - Mark a recommendation inline with `*(recommended)*`, not a separate callout — keeps the options visually parallel.
-- If each option genuinely reduces to a single short phrase (not sentences), use a comparison table (§4) instead — this pattern is specifically for when the reasoning needs room to breathe.
-- Never put this content in a box-drawing ASCII block (§7) — prose-length text breaks fixed-width alignment.
+- If each option genuinely reduces to a single short phrase (not sentences), use a comparison table (section 4) instead — this pattern is specifically for when the reasoning needs room to breathe.
+- Never put this content in a box-drawing ASCII block (section 7) — prose-length text breaks fixed-width alignment.
 
 **Example (from a risk-mitigation proposal):**
 ```markdown
@@ -451,7 +451,7 @@ Enforce strict gatekeeping only on critical fields that cause Master crashes (e.
 
 ## 16. Block Diagrams (`block-beta`)
 
-Two distinct uses, both replacing the retired bordered-box container (§7):
+Two distinct uses, both replacing the retired bordered-box container (section 7):
 
 **A — Flat list / recap card** (equal-weight items, no hierarchy — e.g. a session summary, key takeaways, accomplishments list):
 
@@ -490,9 +490,9 @@ block-beta
 Top-to-bottom color gradient (darkest at the foundation, lightest at the top) reads as "more fundamental → more abstract."
 
 **Rules for both:**
-- Keep each block label short — a few words plus an optional brief description. `block-beta` doesn't wrap long text gracefully; treat it the same as a Mermaid node, not a text container. (Paragraph-length reasoning still belongs in the Decision/Options pattern, §15.)
+- Keep each block label short — a few words plus an optional brief description. `block-beta` doesn't wrap long text gracefully; treat it the same as a Mermaid node, not a text container. (Paragraph-length reasoning still belongs in the Decision/Options pattern, section 15.)
 - `columns 1` for a vertical stack; use `columns N` only for genuine grid layouts.
-- Not for content with paragraph-length reasoning per item — that's still §15, not this.
+- Not for content with paragraph-length reasoning per item — that's still section 15, not this.
 
 > [!NOTE]
 > `block-beta` is a newer, beta-status Mermaid diagram type. It renders on GitHub and the Mermaid Live Editor, but support in VS Code's preview, Obsidian, and static-site generators can lag behind the core `graph`/`flowchart` syntax. Given the bordered-box ASCII pattern has now failed twice in real use, this is the recommended default regardless — if it turns out unsupported in your specific renderer, fall back to a plain Markdown list, not back to ASCII boxes.
@@ -502,7 +502,7 @@ Top-to-bottom color gradient (darkest at the foundation, lightest at the top) re
 
 ## 17. LaTeX Math
 
-Use when a formula meets the trigger in SKILL.md §3.9 (fractions, sums/integrals, roots, sub/superscripts, Greek, matrices, derivations). Trivial expressions stay plain.
+Use when a formula meets the trigger in SKILL.md section 3.9 (fractions, sums/integrals, roots, sub/superscripts, Greek, matrices, derivations). Trivial expressions stay plain.
 
 **Inline:** `$\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i$`
 
@@ -538,7 +538,7 @@ $$
 **Placement rules:**
 - Callouts and lists: ```` ```math ```` fence only. Multi-line `$$` breaks inside `>` quotes and list items.
 - Tables: no bare `|`; use `\lvert x \rvert`, `\mid`, `\Vert`. Keep cells short; move long formulas out to a block under the table.
-- Mermaid labels: no LaTeX. Prefer ASCII (`>=`, `x^2`); Unicode letters (`α`, `Σ`) only when there's no readable ASCII form (§6e).
+- Mermaid labels: no LaTeX. Prefer ASCII (`>=`, `x^2`); Unicode letters (`α`, `Σ`) only when there's no readable ASCII form (section 6e).
 - Currency: escape as `\$` (`costs \$5`); an unescaped pair of `$` becomes math.
 - Underscores and asterisks inside `$...$` are safe in GitHub, VS Code, and Obsidian; if a renderer mangles them, wrap the formula in a ```` ```math ```` fence instead.
 - Define symbols in a short sentence before or after a block formula ("where $n$ is the sample size").

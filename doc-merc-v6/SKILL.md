@@ -15,7 +15,7 @@ description: >
 
 Write **what the reader needs, not what you can**. Every line answers a reader question. Anything else is cut.
 
-**v6 changelog:** reader questions drive content and tier (Step 1). Fixed slot templates per content type, hard word caps, fact → implication points (Step 2). Fixed visual triggers (§3.1). Removed: subtitle, context blockquote, footer, concept-intro template, lead-in sentences. Styling rules unchanged from v5.
+**v6 changelog:** reader questions drive content and tier (Step 1). Fixed slot templates per content type, hard word caps, fact → implication points (Step 2). Fixed visual triggers (section 3.1). Removed: subtitle, context blockquote, footer, concept-intro template, lead-in sentences. Styling rules unchanged from v5.
 
 ---
 
@@ -23,9 +23,9 @@ Write **what the reader needs, not what you can**. Every line answers a reader q
 
 1. **Needed, not possible** — content comes from a fixed question list and slot templates, not from what could be said.
 2. **Decompose** — a complex idea becomes a one-line definition plus small parts, each one line.
-3. **Brief** — hard numeric caps (§2.2). One statement per idea. No restating.
-4. **Deterministic visuals** — a content shape triggers a fixed visual (§3.1). No shape, no visual.
-5. **Renderer-proof links** — ToC anchors are explicit `<a id>` tags (§3.10).
+3. **Brief** — hard numeric caps (section 2.2). One statement per idea. No restating.
+4. **Deterministic visuals** — a content shape triggers a fixed visual (section 3.1). No shape, no visual.
+5. **Renderer-proof links** — ToC anchors are explicit `<a id>` tags (section 3.10).
 
 ---
 
@@ -123,12 +123,12 @@ Each question section uses **exactly one** template, chosen by what the answer i
 **Decision** — a choice between alternatives:
 ```markdown
 **Context:** one line.
-**Options:** table (§3.2), or §3.7 if a cell needs >15 words.
+**Options:** table (section 3.2), or section 3.7 if a cell needs >15 words.
 **Pick:** X — why, ≤15 words.
 **Cost:** what the pick gives up.
 ```
 
-**Fallback** — content that fits none of the four: plain bullets under the §2.2 caps, `→` where relevant. No prose.
+**Fallback** — content that fits none of the four: plain bullets under the section 2.2 caps, `→` where relevant. No prose.
 
 ### 2.5 — Cut list (never write these)
 
@@ -152,18 +152,18 @@ Full pattern reference lives in this skill's `references/` directory:
 
 ### 3.1 — Visual trigger map
 
-Visuals are triggered by content shape, not chosen by taste. Styling of each visual follows §3.2–3.9 unchanged.
+Visuals are triggered by content shape, not chosen by taste. Styling of each visual follows section 3.2–3.9 unchanged.
 
 | Content shape | Visual |
 |---------------|--------|
-| Process with 4+ steps | Mermaid flow (§3.3) in the **Steps** slot, replacing the list |
+| Process with 4+ steps | Mermaid flow (section 3.3) in the **Steps** slot, replacing the list |
 | Process with ≤3 steps | numbered list |
-| 3+ components interacting | one architecture diagram (§3.3), at the first section that needs it |
-| Decision options | table (§3.2); §3.7 if a cell needs >15 words |
-| ≥2 items compared on ≥2 attributes, or ≥3 records with shared fields | table (§3.2) |
-| Concept **Parts** that are ordered layers (3+) | `block-beta` stack (§3.8) |
-| Formula meeting §3.9 trigger | LaTeX |
-| Directory/file layout | ASCII tree (§3.4) |
+| 3+ components interacting | one architecture diagram (section 3.3), at the first section that needs it |
+| Decision options | table (section 3.2); section 3.7 if a cell needs >15 words |
+| ≥2 items compared on ≥2 attributes, or ≥3 records with shared fields | table (section 3.2) |
+| Concept **Parts** that are ordered layers (3+) | `block-beta` stack (section 3.8) |
+| Formula meeting section 3.9 trigger | LaTeX |
+| Directory/file layout | ASCII tree (section 3.4) |
 | Anything else | no visual |
 
 Never put a sentence before a visual explaining what it shows. The heading already says.
@@ -174,7 +174,7 @@ Tables are the **default format** for two content shapes — this is a mechanica
 - **Comparing ≥2 named items across ≥2 shared attributes** → comparison table. Dimension in bold first column, left-aligned, ≤15 words/cell.
 - **Listing ≥3 structured records** (parameters, configs, endpoints, mappings) → reference table.
 
-If content has this shape, use a table. Only skip it when the content genuinely lacks shared structure, or when a cell's reasoning would run past ~15 words — in that case use the Decision/Options pattern (§3.7) for that content, not prose bullets as a workaround.
+If content has this shape, use a table. Only skip it when the content genuinely lacks shared structure, or when a cell's reasoning would run past ~15 words — in that case use the Decision/Options pattern (section 3.7) for that content, not prose bullets as a workaround.
 
 **Complex Tables & Footnote Rule:**
 When dealing with complex data that requires merged cells or multi-tier headers:
@@ -202,19 +202,19 @@ Use for any process, architecture, sequence, or hierarchy that's genuinely spati
 
 - Use `<br/>` for multiline labels; keep node labels descriptive, not just IDs.
 - **Brackets & Special Characters Protection:** Never place raw square brackets `[]` or nested parentheses `()` directly inside unquoted node labels (e.g., `Node([Data [Box]])`). Doing so breaks the Mermaid compiler and triggers parsing errors. Always wrap the entire label inside double quotes within the parenthesized shapes (e.g., `Node(["Data [Box]"])`).
-- **Renderer-safe subset (v4):** a diagram that compiles in `mmdc` can still fail in a preview extension (VS Code, Obsidian, MPE). Stay inside the subset that renders everywhere. Full rules + before/after: style_guide.md §6e.
+- **Renderer-safe subset (v4):** a diagram that compiles in `mmdc` can still fail in a preview extension (VS Code, Obsidian, MPE). Stay inside the subset that renders everywhere. Full rules + before/after: style_guide.md section 6e.
   - Edge labels: `A -->|label| B` only, never `A -- label --> B`.
   - **Markdown-looking labels (v5):** Mermaid 11 reads a label that starts like Markdown (`-`, `+`, `*`, `1.`, `#`, `>`) as Markdown, so an edge labelled `"-"` shows "Unsupported markdown: list" and VS Code's *Markdown Preview Mermaid Support* can show an empty box. Quote the symbol (`|"'-'"|`) or spell it (`|"minus"|`). Applies to literal-character edges in automata/regex diagrams.
   - Several diagrams in one doc: give node ids a per-diagram prefix (`a_n1`, `b_n1`) so ids never collide.
   - Shapes: `["..."]`, `("...")`, `(("..."))`, `((("...")))`, `{"..."}` only. No stadium `([...])`, no newer shape syntax.
   - Labels: plain ASCII. No emoji; write `>=`, `<=`, `!=`, `->` instead of `≥ ≤ ≠ →`; spell `&` as "and"; no `|` inside a node label (use a comma); keep spaces around `<` / `>` so they can't look like an HTML tag next to `<br/>`.
   - Styling: `classDef` + `:::class` on nodes. No nested subgraphs, and never `style` a subgraph id.
-  - Shapes Mermaid can't draw (Venn/overlap, concentric rings): use a table, a linear chain (outer → inner), or a small ASCII sketch (§3.4) instead of forcing it.
+  - Shapes Mermaid can't draw (Venn/overlap, concentric rings): use a table, a linear chain (outer → inner), or a small ASCII sketch (section 3.4) instead of forcing it.
 - **Validate before delivering:** if `mmdc` (`@mermaid-js/mermaid-cli`) is on PATH, run `mmdc -i <file>.md -o <temp-dir>/out.md` and fix any block it rejects. Write the output to a temp dir, never next to the source file. If `mmdc` isn't installed, say the diagrams are unvalidated. A parse-only check is not enough: render with Mermaid 11 and look for the text "Unsupported markdown" or "Syntax error" in the output.
 
 ### 3.4 — ASCII Art (bordered containers retired)
 
-The full bordered container (`┌─...─┐` wrapping multiple rows, closed with `└─...─┘`) is **retired** — it has broken in real use for both paragraph content and plain short lists. Only two shapes survive: directory trees (7a) and small diamond/multi-path sketches (7c), neither of which has a closing right-hand border to misalign. Everything that used to be a bordered box — flat lists, recap cards, linear flows — now goes to §3.7/§3.8 or a plain Markdown list. See style_guide.md §7 for the full decision rule.
+The full bordered container (`┌─...─┐` wrapping multiple rows, closed with `└─...─┘`) is **retired** — it has broken in real use for both paragraph content and plain short lists. Only two shapes survive: directory trees (7a) and small diamond/multi-path sketches (7c), neither of which has a closing right-hand border to misalign. Everything that used to be a bordered box — flat lists, recap cards, linear flows — now goes to section 3.7/section 3.8 or a plain Markdown list. See style_guide.md section 7 for the full decision rule.
 
 ### 3.5 — Custom Callouts
 
@@ -239,11 +239,11 @@ The full bordered container (`┌─...─┐` wrapping multiple rows, closed wi
 
 ### 3.7 — Decision/Options Framework
 
-For "here are N alternatives, each with reasoning" content — proposals, trade-off discussions, mitigation options. This is prose-length content with no spatial relationship between items, so it's neither a table (cells too long) nor a diagram (nothing to point at). Full pattern: style_guide.md §15.
+For "here are N alternatives, each with reasoning" content — proposals, trade-off discussions, mitigation options. This is prose-length content with no spatial relationship between items, so it's neither a table (cells too long) nor a diagram (nothing to point at). Full pattern: style_guide.md section 15.
 
 ### 3.8 — Block Diagrams (`block-beta`)
 
-For anything that used to be a bordered box: flat equal-weight lists wanting a "card" look (solid fill), and short-label hierarchies/layered stacks (gradient fill). Not for paragraph-length content — that's §3.7. `block-beta` is a newer, beta-status Mermaid type with less consistent cross-renderer support than `graph`/`flowchart`; use it deliberately. If a plain Markdown list would work just as well with no containment needed, prefer that — it's simpler and has zero rendering risk. Full pattern + caveats: style_guide.md §16.
+For anything that used to be a bordered box: flat equal-weight lists wanting a "card" look (solid fill), and short-label hierarchies/layered stacks (gradient fill). Not for paragraph-length content — that's section 3.7. `block-beta` is a newer, beta-status Mermaid type with less consistent cross-renderer support than `graph`/`flowchart`; use it deliberately. If a plain Markdown list would work just as well with no containment needed, prefer that — it's simpler and has zero rendering risk. Full pattern + caveats: style_guide.md section 16.
 
 ### 3.9 — LaTeX Math (formulas, equations, derivations)
 
@@ -252,8 +252,8 @@ Mechanical trigger: a formula gets LaTeX if it has fractions, sums/integrals, ro
 - Inline: `$E = mc^2$`. Blocks: a ```` ```math ```` fence (safe inside lists, callouts, and quotes), or `$$...$$` on its own lines at top level only.
 - **Literal dollar signs** must be escaped `\$` (`costs \$5 and \$10`), or they pair up as math.
 - **In tables:** never use a bare `|` in math (it splits the cell); write `\lvert x \rvert`, `\mid`, `\Vert`. Keep formulas short.
-- **In Mermaid labels:** no LaTeX (renderer support is inconsistent). Prefer ASCII spellings (`>=`, `x^2`, `sum`); use a Unicode letter (`α`, `Σ`) only when there's no readable ASCII form (§3.3 renderer-safe subset).
-- Prefer a short line of prose before a block formula saying what the symbols mean. Full patterns: style_guide.md §17.
+- **In Mermaid labels:** no LaTeX (renderer support is inconsistent). Prefer ASCII spellings (`>=`, `x^2`, `sum`); use a Unicode letter (`α`, `Σ`) only when there's no readable ASCII form (section 3.3 renderer-safe subset).
+- Prefer a short line of prose before a block formula saying what the symbols mean. Full patterns: style_guide.md section 17.
 
 ### 3.10 — Title Block & Table of Contents (Tier 2/3 only)
 
@@ -286,12 +286,12 @@ Mechanical trigger: a formula gets LaTeX if it has fractions, sums/integrals, ro
 
 1. **Questions:** every section heading is a reader question; nothing in the doc answers none of them.
 2. **Tier match:** tier equals the question-count rule (Step 1).
-3. **Slots:** each section uses exactly one template, slots in order, none added (§2.4).
-4. **Caps:** no bullet >15 words, no paragraph >2 sentences, ≤1 sentence before a section's content (§2.2).
-5. **No repeats:** no idea stated twice; no item from the cut list (§2.5); Key Idea doesn't restate a slot.
-6. **Visuals:** every visual matches a §3.1 trigger; every trigger that fired has its visual.
+3. **Slots:** each section uses exactly one template, slots in order, none added (section 2.4).
+4. **Caps:** no bullet >15 words, no paragraph >2 sentences, ≤1 sentence before a section's content (section 2.2).
+5. **No repeats:** no idea stated twice; no item from the cut list (section 2.5); Key Idea doesn't restate a slot.
+6. **Visuals:** every visual matches a section 3.1 trigger; every trigger that fired has its visual.
 7. **Anchor check:** every ToC link points to an explicit `<a id="...">` anchor that exists.
 8. **Heading hierarchy:** at most one H1 (the title).
-9. **Nothing wrongly collapsed:** no primary code or content the reader needs inline sits in `<details>` (§3.6).
-10. **Math check:** formulas meeting §3.9 use LaTeX; literal `$` escaped `\$`; no bare `|` in table math; no LaTeX in Mermaid labels; block math inside callouts/lists uses ```` ```math ````.
-11. **Mermaid check:** every diagram stays in the §3.3 renderer-safe subset (`-->|label|` edges, core shapes, ASCII labels, no emoji, `classDef` styling, no nested subgraphs), passed `mmdc` if available, and no label starts with a Markdown marker (`-`, `+`, `*`, `1.`, `#`).
+9. **Nothing wrongly collapsed:** no primary code or content the reader needs inline sits in `<details>` (section 3.6).
+10. **Math check:** formulas meeting section 3.9 use LaTeX; literal `$` escaped `\$`; no bare `|` in table math; no LaTeX in Mermaid labels; block math inside callouts/lists uses ```` ```math ````.
+11. **Mermaid check:** every diagram stays in the section 3.3 renderer-safe subset (`-->|label|` edges, core shapes, ASCII labels, no emoji, `classDef` styling, no nested subgraphs), passed `mmdc` if available, and no label starts with a Markdown marker (`-`, `+`, `*`, `1.`, `#`).

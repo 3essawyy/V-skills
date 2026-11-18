@@ -7,10 +7,10 @@ What it demonstrates:
 - question headings under noun-label PARTs
 - one slot template per question
 - `→` implications and the word caps
-- visuals that fire only on §3.1 triggers
+- visuals that fire only on section 3.1 triggers
 - no subtitle, lead-ins or footer
 
-For a v5 → v6 comparison of the same section, see style_guide.md §10.
+For a v5 → v6 comparison of the same section, see style_guide.md section 10.
 
 ===
 
